@@ -1,0 +1,181 @@
+-create directory for new project
+    "SimpleWebServer"
+-navigate to newly created directory "SimpleWebServer"
+    "cd </path/to/SimpleWebServer>"
+-use dotnet command to setup app server framework
+    "dotnet new empty -n app"
+-add ".vscode" directory
+-setup build task for "app"
+    -add "tasks.json" to .vscode directory
+        {
+            // See https://go.microsoft.com/fwlink/?LinkId=733558
+            // for the documentation about the tasks.json format
+            "version": "2.0.0",
+            "tasks": [
+                {
+                    "label": "build app",
+                    "type": "process",
+                    "command": "dotnet",
+                    "args": 
+                    [
+                        "build",
+                        "${workspaceFolder}/app/app.csproj",
+                    ],
+                    "problemMatcher": "$msCompile",
+                    "group": "build"
+                },
+            ]
+        }
+-setup "app" launcher for debugging
+    -add "launch.json" to .vscode directory
+        {
+            // Use IntelliSense to learn about possible attributes.
+            // Hover to view descriptions of existing attributes.
+            // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+            "version": "0.2.0",
+            "configurations": [
+                {
+                    "name": ".NET Core Launch (web)",
+                    "type": "coreclr",
+                    "request": "launch",
+                    "preLaunchTask": "build app",
+                    "program": "${workspaceFolder}/app/bin/Debug/netcoreapp2.2/app.dll",
+                    "args": [],
+                    "cwd": "${workspaceFolder}/app",
+                    "stopAtEntry": false,
+                    "serverReadyAction": {
+                        "action": "openExternally",
+                        "pattern": "^\\s*Now listening on:\\s+(https?://\\S+)"
+                    },
+                    "env": {
+                        "ASPNETCORE_ENVIRONMENT": "Development"
+                    }
+                }
+            ]
+        }
+-add directory "src" for code inside app directory
+-add directory "Models" to src
+-add directory "Services" to src
+-add directory "Controllers" to src
+-add file "HomeController.cs" to Controllers
+    using Microsoft.AspNetCore.Mvc;
+
+    public class HomeController:Controller {
+        public string Index() {
+            return "hello world";
+        }
+    }
+-update Startup.cs
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.DependencyInjection;
+
+    namespace app
+    {
+        public class Startup
+        {
+            // This method gets called by the runtime. Use this method to add services to the container.
+            // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+            public void ConfigureServices(IServiceCollection services)
+            {
+                // services.AddRouting();
+                services.AddMvc();
+            }
+
+            // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                if (env.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                }
+
+                app.UseMvc((routes) =>
+                {
+                    routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                });
+            }
+        }
+    }
+
+
+-create folder in "SimpleWebServer" for tests
+    "test"
+-navigate to directory "test"
+    "cd test"
+-use dotnet command to setup nunit test framework
+    "dotnet new nunit"
+-add reference to "app" solution in "test" solution
+    "dotnet add reference ../app/app.csproj"
+-add build task "build tests" to tasks.json
+    {
+        "label": "build tests",
+        "type": "process",
+        "command": "dotnet",
+        "args": 
+        [
+            "build",
+            "${workspaceFolder}/Test/Test.csproj",
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    }
+-add build task "run tests" to tasks.json
+    {
+        "label": "run tests",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+            "test",
+            "${workspaceFolder}/Test/Test.csproj"
+        ],
+        "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared"
+        },
+        "problemMatcher": [],
+        "group": "build"
+    }
+-add extension ".NET Core Test Explorer"
+-add settings.json to .vscode directory
+-add setting for .NET Core Test Explorer in settings.json
+    {
+        "dotnet-test-explorer.testProjectPath":"test/test.csproj"
+    }
+-rename UnitTest1.cs to "HomeControllerTests"
+    using NUnit.Framework;
+
+    namespace Tests
+    {
+        public class HomeControllerTests
+        {
+
+            [SetUp]
+            public void Setup()
+            {
+            }
+
+            [Test]
+            public void IndexTest()
+            {
+                // Arrange
+                var controller = new HomeController();
+
+                // Act
+                var result = controller.Index();
+
+                // Assert
+                Assert.AreEqual("hello world", result);
+            }
+        }
+    }
+-add Microsoft.AspNetCore.app reference to test project
+    <ItemGroup>
+        <ProjectReference Include="..\app\app.csproj" />
+        <PackageReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+
